@@ -11,9 +11,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="MathNet.Numerics" Version="4.2.0" />
     <PackageReference Include="SixLabors.Core" Version="1.0.0-ci0005" />
     <PackageReference Include="xunit" Version="2.3.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Moq">
+      <HintPath>..\..\..\..\..\Users\antdr\.nuget\packages\moq\4.8.1\lib\netstandard1.3\Moq.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

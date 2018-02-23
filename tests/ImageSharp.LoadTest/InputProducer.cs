@@ -6,14 +6,21 @@
     using System.IO;
     using System.Linq;
 
+    using MathNet.Numerics.Distributions;
+
     using SixLabors.ImageSharp.Tests;
+
+    using Xunit.Sdk;
 
     public class InputProducer
     {
+        private readonly IContinuousDistribution megaPixelDistribution;
+
         private readonly Dictionary<double, string> megapixel2Path = new Dictionary<double, string>();
 
-        public InputProducer(IEnumerable<string> files)
+        public InputProducer(IEnumerable<string> files, IContinuousDistribution megaPixelDistribution)
         {
+            this.megaPixelDistribution = megaPixelDistribution;
             foreach (string path in files)
             {
                 string fn = Path.GetFileNameWithoutExtension(path);
@@ -27,16 +34,16 @@
 
         public int FileCount => this.megapixel2Path.Count;
 
-        public static InputProducer Create()
+        public static InputProducer Create(IContinuousDistribution distribution)
         {
             string solutionDir = TestEnvironment.SolutionDirectoryFullPath;
             string inputFileDir = $"{solutionDir}/tests/ImageSharp.LoadTest/GeneratedInput";
             var di = new DirectoryInfo(inputFileDir);
             IEnumerable<string> files = di.EnumerateFiles().Select(fi => fi.FullName);
-            return new InputProducer(files);
+            return new InputProducer(files, distribution);
         }
 
-        public string GetPath(double megaPixels)
+        public string GetFileByMegaPixels(double megaPixels)
         {
             double minDist = double.MaxValue;
             string bestMatch = null;
@@ -52,6 +59,12 @@
             }
 
             return bestMatch;
+        }
+
+        public string Next()
+        {
+            double mp = this.megaPixelDistribution.Sample();
+            return this.GetFileByMegaPixels(mp);
         }
     }
 }
