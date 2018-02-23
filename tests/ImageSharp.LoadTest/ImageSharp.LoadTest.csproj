@@ -18,6 +18,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\ImageSharp\ImageSharp.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="Moq">
       <HintPath>..\..\..\..\..\Users\antdr\.nuget\packages\moq\4.8.1\lib\netstandard1.3\Moq.dll</HintPath>
     </Reference>
