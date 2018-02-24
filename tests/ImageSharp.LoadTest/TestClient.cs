@@ -5,6 +5,7 @@ namespace ImageSharp.LoadTest
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -29,7 +30,12 @@ namespace ImageSharp.LoadTest
 
             this.TotalMegaPixels = totalMegaPixels;
             this.TotalMilliseconds = totalMilliSeconds;
+
+            double totalBytes = GC.GetTotalMemory(false);
+            this.TotalManagedMemoryInMegaBytes = totalBytes / (1024 * 1024);
         }
+
+        public double TotalManagedMemoryInMegaBytes { get; }
 
         public ServiceInvocationReport[] ReportsByMegaPixels { get; }
 
@@ -41,14 +47,23 @@ namespace ImageSharp.LoadTest
 
         public double AverageMillisecondsPerMegaPixel => this.TotalMilliseconds / this.TotalMegaPixels;
 
-        public int TotalRequests => this.ReportsByMegaPixels.Length;
+        public double AverageMillisecondsPerRequest => this.TotalMilliseconds / this.RequestCount;
 
-        public double AverageMegaPixels => this.TotalMegaPixels / this.TotalRequests;
+        public int RequestCount => this.ReportsByMegaPixels.Length;
+
+        public double AverageMegaPixels => this.TotalMegaPixels / this.RequestCount;
 
         public override string ToString()
         {
-            return
-                $"[Avg MP: {this.AverageMegaPixels}] [Max MP: {this.ReportsByMegaPixels[0].MegaPixelsProcessed}] [ms/MP: {this.AverageMillisecondsPerMegaPixel}]";
+            var bld = new StringBuilder();
+            bld.AppendLine($"[Total RequestCount: {this.RequestCount}]");
+            bld.AppendLine(
+                $"[Avg MP: {this.AverageMegaPixels}] [Max MP: {this.ReportsByMegaPixels[0].MegaPixelsProcessed}]");
+            bld.AppendLine(
+                $"[ms/MP: {this.AverageMillisecondsPerMegaPixel}] [avg ms/req: {this.AverageMillisecondsPerRequest}]");
+            bld.AppendLine($"[Memory: {this.TotalManagedMemoryInMegaBytes} MB]");
+
+            return bld.ToString();
         }
     }
 
@@ -84,6 +99,8 @@ namespace ImageSharp.LoadTest
         {
         }
 
+        public int AutoStopAfterNumberOfRequests { get; set; } = int.MaxValue;
+
         private void PrintStats()
         {
             Console.WriteLine("**** Stats ******");
@@ -103,7 +120,7 @@ namespace ImageSharp.LoadTest
 
             for (;;)
             {
-                if (this.ProcessConsole())
+                if (this.ProcessConsole() || this.processed.Count > this.AutoStopAfterNumberOfRequests)
                 {
                     this.PrintStats();
                     return;
