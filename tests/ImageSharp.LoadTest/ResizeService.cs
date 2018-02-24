@@ -45,6 +45,7 @@
             var stopwatch = Stopwatch.StartNew();
             using (var image = Image.Load(path))
             {
+                Size origialSize = image.Size();
                 int w = image.Width / 4;
                 int h = image.Height / 4;
 
@@ -58,19 +59,19 @@
                     File.Delete(resultFile);
                 }
 
-                return new ResizeReport(time, path, resultFile, image, stopwatch.ElapsedMilliseconds);
+                return new ResizeReport(time, path, resultFile, origialSize, stopwatch.ElapsedMilliseconds);
             }
         }
     }
 
     public class ResizeReport : ServiceInvocationReport
     {
-        private readonly Size size;
+        private readonly Size originalSize;
 
-        public ResizeReport(DateTime startTime, string inputFile, string resultFile, IImage image, long milliseconds)
-            : base(startTime, image.GetMegaPixels(), milliseconds)
+        public ResizeReport(DateTime startTime, string inputFile, string resultFile, Size originalSize, long milliseconds)
+            : base(startTime, originalSize.GetMegaPixels(), milliseconds)
         {
-            this.size = new Size(image.Width, image.Height);
+            this.originalSize = originalSize;
             this.InputFile = inputFile;
             this.ResultFile = resultFile;
         }
@@ -82,7 +83,7 @@
         public override string ToString()
         {
             string fn = Path.GetFileNameWithoutExtension(this.InputFile);
-            return $"[Resized: {fn} ({this.size.Width}x{this.size.Height}, {this.MegaPixelsProcessed:0.00}MP) in {this.Milliseconds:0000}ms]";
+            return $"[Resized: {fn} ({this.originalSize.Width}x{this.originalSize.Height}, {this.MegaPixelsProcessed:0.00}MP) in {this.Milliseconds:0000}ms]";
         }
     }
 }

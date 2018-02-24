@@ -18,7 +18,6 @@ namespace ImageSharp.LoadTest
         {
             this.ReportsByTime = reports.OrderBy(r => r.StartTime).ToArray();
             this.ReportsByMegaPixels = this.ReportsByTime.OrderByDescending(r => r.MegaPixelsProcessed).ToArray();
-            this.ReportsByMegaPixels = reports.ToArray();
             
             double totalMilliSeconds = 0;
             double totalMegaPixels = 0;
@@ -106,6 +105,7 @@ namespace ImageSharp.LoadTest
             {
                 if (this.ProcessConsole())
                 {
+                    this.PrintStats();
                     return;
                 }
                 

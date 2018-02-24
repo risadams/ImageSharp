@@ -12,13 +12,13 @@ namespace ImageSharp.LoadTest
     {
         public static void Main(string[] args)
         {
-            Configuration.Default.MemoryManager = ArrayPoolMemoryManager.CreateWithAggressivePooling();
+            Configuration.Default.MemoryManager = ArrayPoolMemoryManager.CreateWithNormalPooling();
 
             var randomSource = new Mrg32k3a(true);
-            var megapixelDistribution = new Normal(3.0, 1.0, randomSource);
+            var megapixelDistribution = new Normal(4.0, 1.0, randomSource);
             var service = new ResizeService() { CleanOutput = true };
 
-            var client = new TestClient(service, megapixelDistribution, 500, randomSource);
+            var client = new TestClient(service, megapixelDistribution, 300, randomSource);
 
             client.Run().Wait();
 
