@@ -35,6 +35,15 @@
         }
 
         /// <summary>
+        /// Only pool small buffers like image rows.
+        /// </summary>
+        /// <returns>The memory manager</returns>
+        public static ArrayPoolMemoryManager CreateWithConservativePooling()
+        {
+            return new ArrayPoolMemoryManager(1024 * 16, 1024 * 4, 16, 24);
+        }
+
+        /// <summary>
         /// RAM is not an issue for me, gimme maximum througput!
         /// </summary>
         /// <returns>The memory manager</returns>
