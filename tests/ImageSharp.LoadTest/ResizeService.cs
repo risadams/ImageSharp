@@ -6,6 +6,8 @@
     using System.Threading.Tasks;
 
     using SixLabors.ImageSharp;
+    using SixLabors.ImageSharp.Helpers;
+    using SixLabors.Primitives;
 
     public class ResizeService : ITestService
     {
@@ -43,8 +45,6 @@
             var stopwatch = Stopwatch.StartNew();
             using (var image = Image.Load(path))
             {
-                double megaPixels = image.GetMegaPixels();
-
                 int w = image.Width / 4;
                 int h = image.Height / 4;
 
@@ -58,16 +58,19 @@
                     File.Delete(resultFile);
                 }
 
-                return new ResizeReport(time, path, resultFile, megaPixels, stopwatch.ElapsedMilliseconds);
+                return new ResizeReport(time, path, resultFile, image, stopwatch.ElapsedMilliseconds);
             }
         }
     }
 
     public class ResizeReport : ServiceInvocationReport
     {
-        public ResizeReport(DateTime startTime, string inputFile, string resultFile, double megaPixelsProcessed, long milliseconds)
-            : base(startTime, megaPixelsProcessed, milliseconds)
+        private readonly Size size;
+
+        public ResizeReport(DateTime startTime, string inputFile, string resultFile, IImage image, long milliseconds)
+            : base(startTime, image.GetMegaPixels(), milliseconds)
         {
+            this.size = new Size(image.Width, image.Height);
             this.InputFile = inputFile;
             this.ResultFile = resultFile;
         }
@@ -79,7 +82,7 @@
         public override string ToString()
         {
             string fn = Path.GetFileNameWithoutExtension(this.InputFile);
-            return $"[Resized: {fn} ({this.MegaPixelsProcessed:0.00}MP) in {this.Milliseconds:0000}ms]";
+            return $"[Resized: {fn} ({this.size.Width}x{this.size.Height}, {this.MegaPixelsProcessed:0.00}MP) in {this.Milliseconds:0000}ms]";
         }
     }
 }
