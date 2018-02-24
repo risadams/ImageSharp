@@ -6,17 +6,21 @@ namespace ImageSharp.LoadTest
     using MathNet.Numerics.Random;
 
     using SixLabors.ImageSharp;
+#if !RELEASE_OLD
     using SixLabors.ImageSharp.Memory;
+#endif
 
     class Program
     {
         public static void Main(string[] args)
         {
+#if !RELEASE_OLD
             Configuration.Default.MemoryManager = ArrayPoolMemoryManager.CreateWithNormalPooling();
+#endif
 
             int meanImageWidth = 4000;
-            int imageWidthDeviation = 2500;
-            int averageMsBetweenRequests = 500;
+            int imageWidthDeviation = 1500;
+            int averageMsBetweenRequests = 400;
             
             var service = new ResizeService() { CleanOutput = true };
 
@@ -25,7 +29,7 @@ namespace ImageSharp.LoadTest
                 meanImageWidth,
                 imageWidthDeviation,
                 averageMsBetweenRequests);
-            client.AutoStopAfterNumberOfRequests = 500;
+            client.AutoStopAfterNumberOfRequests = 1000;
 
             client.Run().Wait();
 

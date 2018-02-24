@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>netcoreapp2.0;net461</TargetFrameworks>
     <StartupObject>ImageSharp.LoadTest.Program</StartupObject>
+    <Configurations>Debug;Release;Release_Old</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,14 +18,11 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(Configuration)'!='Release_Old'">
     <ProjectReference Include="..\..\src\ImageSharp\ImageSharp.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Moq">
-      <HintPath>..\..\..\..\..\Users\antdr\.nuget\packages\moq\4.8.1\lib\netstandard1.3\Moq.dll</HintPath>
-    </Reference>
+  <ItemGroup Condition="'$(Configuration)'=='Release_Old'">
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-dev000782" />
   </ItemGroup>
 
 </Project>

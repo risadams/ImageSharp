@@ -4,6 +4,7 @@ namespace ImageSharp.LoadTest
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Text;
     using System.Threading;
@@ -34,7 +35,11 @@ namespace ImageSharp.LoadTest
 
             double totalBytes = GC.GetTotalMemory(false);
             this.TotalManagedMemoryInMegaBytes = totalBytes / (1024 * 1024);
+            this.TotalMemoryInMegaBytes = Process.GetCurrentProcess().WorkingSet64 / (1024.0 * 1024.0);
+            this.TotalUpTime = DateTime.Now - this.ReportsByTime[0].StartTime;
         }
+
+        public double TotalMemoryInMegaBytes { get; }
 
         public double TotalManagedMemoryInMegaBytes { get; }
 
@@ -54,15 +59,17 @@ namespace ImageSharp.LoadTest
 
         public double AverageMegaPixels => this.TotalMegaPixels / this.RequestCount;
 
+        public TimeSpan TotalUpTime { get; }
+
         public override string ToString()
         {
             var bld = new StringBuilder();
-            bld.AppendLine($"[Total RequestCount: {this.RequestCount}]");
+            bld.AppendLine($"[Total RequestCount: {this.RequestCount}] [Total up time: {this.TotalUpTime}]");
             bld.AppendLine(
                 $"[Avg MP: {this.AverageMegaPixels}] [Max MP: {this.ReportsByMegaPixels[0].MegaPixelsProcessed}]");
             bld.AppendLine(
-                $"[ms/MP: {this.AverageMillisecondsPerMegaPixel}] [avg ms/req: {this.AverageMillisecondsPerRequest}]");
-            bld.AppendLine($"[Memory: {this.TotalManagedMemoryInMegaBytes} MB]");
+                $"[ms/MP: {this.AverageMillisecondsPerMegaPixel:##.}] [avg ms/req: {this.AverageMillisecondsPerRequest:##.}]");
+            bld.AppendLine($"[Memory: {this.TotalMemoryInMegaBytes:##.} MB] [GC: {this.TotalManagedMemoryInMegaBytes:##.} MB]");
 
             return bld.ToString();
         }
@@ -113,6 +120,26 @@ namespace ImageSharp.LoadTest
             double MegaPixelSampler()
             {
                 double width = widthDistribution.Sample();
+                
+                double height = width / 1.77; // typical aspect ratio
+                return width * height / (1_000_000);
+            }
+
+            return new TestClient(service, MegaPixelSampler, averageMsBetweenRequests, randomSource);
+        }
+
+        public static TestClient CreateClientWithNormalLoad(ITestService service,
+                                                            int meanImageWidth,
+                                                            int imageWidthDeviation,
+                                                            int averageMsBetweenRequests)
+        {
+            var randomSource = new Mrg32k3a(42, true);
+            var widthDistribution = new Normal(meanImageWidth, imageWidthDeviation, randomSource);
+
+            double MegaPixelSampler()
+            {
+                double width = widthDistribution.Sample();
+
                 double height = width / 1.77; // typical aspect ratio
                 return width * height / (1_000_000);
             }
@@ -175,7 +202,9 @@ namespace ImageSharp.LoadTest
                     case ConsoleKey.Escape:
                         return true;
                     case ConsoleKey.R:
+#if !RELEASE_OLD
                         Configuration.Default.MemoryManager.ReleaseRetainedResources();
+#endif
                         Console.WriteLine(
                             "******** Configuration.Default.MemoryManager.ReleaseRetainedResources() called! ********");
                         break;

@@ -6,7 +6,6 @@
     using System.Threading.Tasks;
 
     using SixLabors.ImageSharp;
-    using SixLabors.ImageSharp.Helpers;
     using SixLabors.Primitives;
 
     public class ResizeService : ITestService
@@ -44,9 +43,10 @@
             Console.Out.Flush();
 
             var stopwatch = Stopwatch.StartNew();
-            using (var image = Image.Load(path))
+            
+            using (var image = SixLabors.ImageSharp.Image.Load(path))
             {
-                Size origialSize = image.Size();
+                var origialSize = new Size(image.Width, image.Height);
                 int w = image.Width / 4;
                 int h = image.Height / 4;
 
