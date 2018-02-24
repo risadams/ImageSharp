@@ -1,7 +1,10 @@
 $perc = @(10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 70, 80,  90, 90, 100, 110, 120, 130, 140, 150, 160, 170)
 
-$inDir = "..\Images\External\LoadTestInput"
-$outDir = ".\GeneratedInput"
+#cd $PSScriptRoot
+
+$inDir = "$PSScriptRoot\..\Images\External\LoadTestInput"
+$outDir = "$PSScriptRoot\GeneratedInput"
+
 
 if (!(Test-Path $outDir)) {
     New-Item -ItemType directory -Path $outDir
@@ -14,7 +17,7 @@ Get-ChildItem $inDir | ForEach-Object {
 
     $dimsStr = (magick identify -format "%wx%h" $inputFileFull) | Out-String
     $a = $dimsStr.Split('x')
-    $origMegaPixels = [double]$a[0]*[double]$a[1] / (1024*1024)
+    $origMegaPixels = [double]$a[0]*[double]$a[1] / (1000*1000)
     
     Write-Host "$dimsStr MP=$origMegaPixels"
 

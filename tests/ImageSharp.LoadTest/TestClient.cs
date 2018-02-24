@@ -10,6 +10,7 @@ namespace ImageSharp.LoadTest
     using System.Threading.Tasks;
 
     using MathNet.Numerics.Distributions;
+    using MathNet.Numerics.Random;
 
     using SixLabors.ImageSharp;
 
@@ -73,7 +74,7 @@ namespace ImageSharp.LoadTest
 
         private ITestService service;
 
-        private readonly IContinuousDistribution requestDensityMillisecondsDistribution;
+        private readonly Func<double> requestDensityMillisecondsSampler;
 
         private int requestsSent = 0;
 
@@ -81,22 +82,42 @@ namespace ImageSharp.LoadTest
 
         public TestClient(
             ITestService service,
-            IContinuousDistribution megapixelDistribution,
-            IContinuousDistribution requestDensityMillisecondsDistribution
+            Func<double> megaPixelDistributionSampler,
+            Func<double> requestDensityMillisecondsSampler
             )
         {
-            this.inputProducer = InputProducer.Create(megapixelDistribution);
+            this.inputProducer = InputProducer.Create(megaPixelDistributionSampler);
             this.service = service;
-            this.requestDensityMillisecondsDistribution = requestDensityMillisecondsDistribution;
+            this.requestDensityMillisecondsSampler = requestDensityMillisecondsSampler;
         }
-
+        
         public TestClient(
             ITestService service,
-            IContinuousDistribution megapixelDistribution,
-            double averageMsBetweenRequests,
+            Func<double> megaPixelDistributionSampler,
+            int averageMsBetweenRequests,
             Random randomSource)
-            : this(service, megapixelDistribution, new Exponential(1.0 / averageMsBetweenRequests, randomSource))
+            : this(service, megaPixelDistributionSampler, new Exponential(1.0 / averageMsBetweenRequests, randomSource).Sample)
         {
+        }
+        
+        public static TestClient CreateWithLogNormalLoad(
+            ITestService service,
+            int meanImageWidth,
+            int imageWidthDeviation,
+            int averageMsBetweenRequests)
+        {
+            var randomSource = new Mrg32k3a(42, true);
+            double variance = imageWidthDeviation * imageWidthDeviation;
+            var widthDistribution = LogNormal.WithMeanVariance(meanImageWidth, variance, randomSource);
+
+            double MegaPixelSampler()
+            {
+                double width = widthDistribution.Sample();
+                double height = width / 1.77; // typical aspect ratio
+                return width * height / (1_000_000);
+            }
+
+            return new TestClient(service, MegaPixelSampler, averageMsBetweenRequests, randomSource);
         }
 
         public int AutoStopAfterNumberOfRequests { get; set; } = int.MaxValue;
@@ -139,7 +160,7 @@ namespace ImageSharp.LoadTest
                             Console.Out.Flush();
                         });
 
-                double waitMs = this.requestDensityMillisecondsDistribution.Sample();
+                double waitMs = this.requestDensityMillisecondsSampler();
                 await Task.Delay((int)waitMs);
             }
         }

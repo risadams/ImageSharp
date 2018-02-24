@@ -17,8 +17,9 @@
 
         public Task<ServiceInvocationReport> ProcessImage(Func<string> pathProducer)
         {
+            string path = pathProducer();
             return Task<ServiceInvocationReport>.Factory.StartNew(
-                () => this.ProcessImpl(pathProducer()),
+                () => this.ProcessImpl(path),
                 TaskCreationOptions.LongRunning);
         }
 

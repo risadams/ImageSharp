@@ -14,13 +14,14 @@
 
     public class InputProducer
     {
-        private readonly IContinuousDistribution megaPixelDistribution;
+        //private readonly IContinuousDistribution megaPixelDistribution;
+        private readonly Func<double> megaPixelDistributionSampler;
 
         private readonly Dictionary<double, string> megapixel2Path = new Dictionary<double, string>();
 
-        public InputProducer(IEnumerable<string> files, IContinuousDistribution megaPixelDistribution)
+        public InputProducer(IEnumerable<string> files, Func<double> megaPixelDistributionSampler)
         {
-            this.megaPixelDistribution = megaPixelDistribution;
+            this.megaPixelDistributionSampler = megaPixelDistributionSampler;
             foreach (string path in files)
             {
                 string fn = Path.GetFileNameWithoutExtension(path);
@@ -34,14 +35,16 @@
 
         public int FileCount => this.megapixel2Path.Count;
 
-        public static InputProducer Create(IContinuousDistribution distribution)
+        public static InputProducer Create(Func<double> megaPixelDistributionSampler)
         {
             string solutionDir = TestEnvironment.SolutionDirectoryFullPath;
             string inputFileDir = $"{solutionDir}/tests/ImageSharp.LoadTest/GeneratedInput";
             var di = new DirectoryInfo(inputFileDir);
             IEnumerable<string> files = di.EnumerateFiles().Select(fi => fi.FullName);
-            return new InputProducer(files, distribution);
+            return new InputProducer(files, megaPixelDistributionSampler);
         }
+
+        public static InputProducer Create(IContinuousDistribution distribution) => Create(distribution.Sample);
 
         public string GetFileByMegaPixels(double megaPixels)
         {
@@ -63,7 +66,7 @@
 
         public string Next()
         {
-            double mp = this.megaPixelDistribution.Sample();
+            double mp = this.megaPixelDistributionSampler();
             return this.GetFileByMegaPixels(mp);
         }
     }

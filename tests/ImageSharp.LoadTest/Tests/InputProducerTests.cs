@@ -40,7 +40,7 @@ namespace ImageSharp.LoadTest.Tests
         [MemberData(nameof(GetFileByMegaPixels_Data))]
         public void GetFileByMegaPixels(double mp, string expectedPath)
         {
-            var producer = new InputProducer(PathValues, this.dummyDistribution);
+            var producer = new InputProducer(PathValues, () => 42.0);
 
             string actualPath = producer.GetFileByMegaPixels(mp);
 
