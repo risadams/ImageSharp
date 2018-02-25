@@ -17,8 +17,9 @@ namespace ImageSharp.LoadTest
 
     public class Stats
     {
-        public Stats(IEnumerable<ServiceInvocationReport> reports)
+        public Stats(IEnumerable<ServiceInvocationReport> reports, IEnumerable<MemoryLogEntry> memoryLog)
         {
+            this.MemoryLog = memoryLog.ToArray();
             this.ReportsByTime = reports.OrderBy(r => r.StartTime).ToArray();
             this.ReportsByMegaPixels = this.ReportsByTime.OrderByDescending(r => r.MegaPixelsProcessed).ToArray();
             
@@ -35,17 +36,22 @@ namespace ImageSharp.LoadTest
 
             double totalBytes = GC.GetTotalMemory(false);
             this.TotalManagedMemoryInMegaBytes = totalBytes / (1024 * 1024);
-            this.TotalMemoryInMegaBytes = Process.GetCurrentProcess().WorkingSet64 / (1024.0 * 1024.0);
+            var process = Process.GetCurrentProcess();
+            this.PeakWorkingSetMemoryInMegaBytes = process.PeakWorkingSet64 / (1024.0 * 1024.0);
             this.TotalUpTime = DateTime.Now - this.ReportsByTime[0].StartTime;
         }
 
-        public double TotalMemoryInMegaBytes { get; }
+        public double PeakPrivateMemoryInMegaBytes { get; }
+
+        public double PeakWorkingSetMemoryInMegaBytes { get; }
 
         public double TotalManagedMemoryInMegaBytes { get; }
 
         public ServiceInvocationReport[] ReportsByMegaPixels { get; }
 
         public ServiceInvocationReport[] ReportsByTime { get; }
+
+        public MemoryLogEntry[] MemoryLog { get; }
 
         public double TotalMilliseconds { get; }
 
@@ -64,14 +70,72 @@ namespace ImageSharp.LoadTest
         public override string ToString()
         {
             var bld = new StringBuilder();
-            bld.AppendLine($"[Total RequestCount: {this.RequestCount}] [Total up time: {this.TotalUpTime}]");
+            bld.AppendLine($"[Total RequestCount: {this.RequestCount}] [Total up time: {this.TotalUpTime:mm\\:ss}]");
             bld.AppendLine(
-                $"[Avg MP: {this.AverageMegaPixels}] [Max MP: {this.ReportsByMegaPixels[0].MegaPixelsProcessed}]");
+                $"[Avg MP: {this.AverageMegaPixels:###.##}] [Max MP: {this.ReportsByMegaPixels[0].MegaPixelsProcessed:###.##}]");
             bld.AppendLine(
-                $"[ms/MP: {this.AverageMillisecondsPerMegaPixel:##.}] [avg ms/req: {this.AverageMillisecondsPerRequest:##.}]");
-            bld.AppendLine($"[Memory: {this.TotalMemoryInMegaBytes:##.} MB] [GC: {this.TotalManagedMemoryInMegaBytes:##.} MB]");
+                $"[ms/MP: {this.AverageMillisecondsPerMegaPixel:###.}] [avg ms/req: {this.AverageMillisecondsPerRequest:###.}]");
+            bld.AppendLine($"[Peak Working Set Memory: {this.PeakWorkingSetMemoryInMegaBytes:####.} MB] [GC: {this.TotalManagedMemoryInMegaBytes:####.} MB]");
 
+            if (this.MemoryLog.Any())
+            {
+                bld.AppendLine("** Memory Log:");
+
+                foreach (MemoryLogEntry e in this.MemoryLog)
+                {
+                    bld.AppendLine(e.ToString());
+                }
+
+                double avgWorkingSet = this.MemoryLog.Average(e => e.WorkingSetMegaBytes);
+                bld.AppendLine($"[AVG Working set: {avgWorkingSet:####.} MB]");
+            }
+            
             return bld.ToString();
+        }
+    }
+
+    public struct MemoryLogEntry
+    {
+        public MemoryLogEntry(
+            int requestCount,
+            TimeSpan elapsedTime,
+            double privateMegaBytes,
+            double workingSetMegaBytes,
+            double virtualMegaBytes)
+        {
+            this.RequestCount = requestCount;
+            this.ElapsedTime = elapsedTime;
+
+            this.PrivateMegaBytes = privateMegaBytes;
+            this.WorkingSetMegaBytes = workingSetMegaBytes;
+            this.VirtualMegaBytes = virtualMegaBytes;
+        }
+
+        public static MemoryLogEntry Create(DateTime startTime, int requestCount)
+        {
+            var process = Process.GetCurrentProcess();
+            const double BytesInMb = (1024.0 * 1024.0);
+
+            double privateMb = process.PrivateMemorySize64 / BytesInMb;
+            double workingSetMb = process.WorkingSet64 / BytesInMb;
+            double virtMb = process.VirtualMemorySize64 / BytesInMb;
+            TimeSpan dt = DateTime.Now - startTime;
+            return new MemoryLogEntry(requestCount, dt, privateMb, workingSetMb, virtMb);
+        }
+
+        public int RequestCount { get; }
+
+        public double PrivateMegaBytes { get; }
+
+        public double WorkingSetMegaBytes { get; }
+
+        public double VirtualMegaBytes { get; }
+
+        public TimeSpan ElapsedTime { get; }
+
+        public override string ToString()
+        {
+            return $"{this.ElapsedTime:mm\\:ss} | WorkingSet: {this.WorkingSetMegaBytes:000.0} MB";
         }
     }
 
@@ -86,6 +150,10 @@ namespace ImageSharp.LoadTest
         private int requestsSent = 0;
 
         private readonly ConcurrentBag<ServiceInvocationReport> processed = new ConcurrentBag<ServiceInvocationReport>();
+
+        private readonly List<MemoryLogEntry> memoryLog = new List<MemoryLogEntry>();
+
+        private int requestsAfterLastMemoryLog = 0;
 
         public TestClient(
             ITestService service,
@@ -149,22 +217,30 @@ namespace ImageSharp.LoadTest
 
         public int AutoStopAfterNumberOfRequests { get; set; } = int.MaxValue;
 
+        public int LogMemoryEachRequest { get; set; } = 100;
+
         private void PrintStats()
         {
             Console.WriteLine("**** Stats ******");
-            var stats = new Stats(this.processed);
+            var stats = new Stats(this.processed, this.memoryLog);
             Console.WriteLine(stats.ToString());
             Console.WriteLine("*****************");
         }
+
         
         public async Task Run()
         {
-            Console.WriteLine("Commands:");
-            Console.WriteLine("   ESC: Stop");
-            Console.WriteLine("   R:   ReleaseRetainedResources()");
-            Console.WriteLine("   S:   Stats");
-            Console.WriteLine("\nPress enter to start!\n***********");
-            Console.ReadLine();
+            if (Program.Verbose)
+            {
+                Console.WriteLine("Commands:");
+                Console.WriteLine("   ESC: Stop");
+                Console.WriteLine("   R:   ReleaseRetainedResources()");
+                Console.WriteLine("   S:   Stats");
+                Console.WriteLine("\nPress enter to start!\n***********");
+                Console.ReadLine();
+            }
+            
+            DateTime startTime = DateTime.Now;
 
             for (;;)
             {
@@ -173,6 +249,8 @@ namespace ImageSharp.LoadTest
                     this.PrintStats();
                     return;
                 }
+
+                this.LogMemoryUsage(startTime);
                 
                 Task<ServiceInvocationReport> process = this.service.ProcessImage(this.inputProducer.Next);
                 Interlocked.Increment(ref this.requestsSent);
@@ -181,14 +259,30 @@ namespace ImageSharp.LoadTest
                         {
                             ServiceInvocationReport result = process.Result;
                             Interlocked.Decrement(ref this.requestsSent);
+                            Interlocked.Increment(ref this.requestsAfterLastMemoryLog);
                             this.processed.Add(result);
-                            Console.WriteLine($"Finished: {result}");
-                            Console.WriteLine($"  Total: {this.processed.Count} | Requests in queue: {this.requestsSent}");
-                            Console.Out.Flush();
+
+                            if (Program.Verbose)
+                            {
+                                Console.WriteLine($"Finished: {result}");
+                                Console.WriteLine($"  Total: {this.processed.Count} | Requests in queue: {this.requestsSent}");
+                                Console.Out.Flush();
+                            }
                         });
 
                 double waitMs = this.requestDensityMillisecondsSampler();
                 await Task.Delay((int)waitMs);
+            }
+        }
+
+        private void LogMemoryUsage(DateTime startTime)
+        {
+            if (this.requestsAfterLastMemoryLog > this.LogMemoryEachRequest)
+            {
+                var entry = MemoryLogEntry.Create(startTime, this.processed.Count);
+                this.memoryLog.Add(entry);
+                int r = this.requestsAfterLastMemoryLog - this.LogMemoryEachRequest;
+                Interlocked.Exchange(ref this.requestsAfterLastMemoryLog, r);
             }
         }
 

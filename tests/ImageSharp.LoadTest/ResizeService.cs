@@ -39,9 +39,12 @@
         private ServiceInvocationReport ProcessImpl(string path)
         {
             DateTime time = DateTime.Now;
-            Console.WriteLine("  Resize Request: " + path);
-            Console.Out.Flush();
 
+            if (Program.Verbose)
+            {
+                Console.WriteLine("  Resize Request: " + path);
+            }
+            
             var stopwatch = Stopwatch.StartNew();
             
             using (var image = SixLabors.ImageSharp.Image.Load(path))
