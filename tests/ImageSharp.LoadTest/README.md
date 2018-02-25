@@ -13,7 +13,7 @@
 - The data series follow 610 requests for each setup. The memory data usage is sampled each 50th request
   - Working Set of the process
   - Allocated GC memory
-- The throughput is measured in `ms/MP`: milliseconds needed to process one MegaPixel of input stuff. The lower is better.
+- The raw throughput metric is `ms/MP`: milliseconds needed to process one MegaPixel of input stuff. The lower is better.
 - All setups are launched with the same random seed, making the comparison quite fair.
 - It's clear from the results, that around 200th request a big outlier image is being processed, consuming ~130MB of memory
 
