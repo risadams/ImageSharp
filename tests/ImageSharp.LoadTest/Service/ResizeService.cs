@@ -42,7 +42,7 @@
         {
             DateTime time = DateTime.Now;
 
-            if (Program.Verbose)
+            if (Program.IsInteractive)
             {
                 Console.WriteLine("  Resize Request: " + path);
             }

@@ -1,4 +1,4 @@
-﻿namespace ImageSharp.LoadTest
+﻿namespace ImageSharp.LoadTest.Execution
 {
     using System;
     using System.Collections.Generic;
@@ -9,8 +9,6 @@
     using MathNet.Numerics.Distributions;
 
     using SixLabors.ImageSharp.Tests;
-
-    using Xunit.Sdk;
 
     public class InputProducer
     {

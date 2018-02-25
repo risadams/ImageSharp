@@ -64,7 +64,7 @@
                 $"[Avg MP: {this.AverageMegaPixels:###.##}] [Max MP: {this.ReportsByMegaPixels[0].MegaPixelsProcessed:###.##}]");
             bld.AppendLine(
                 $"[ms/MP: {this.AverageMillisecondsPerMegaPixel:###.}] [avg ms/req: {this.AverageMillisecondsPerRequest:###.}]");
-            bld.AppendLine($"[Peak Working Set Memory: {this.PeakWorkingSetMemoryInMegaBytes:####.} MB] [GC: {this.TotalManagedMemoryInMegaBytes:####.} MB]");
+            bld.AppendLine($"[Peak Working Set Memory: {this.PeakWorkingSetMemoryInMegaBytes:####.} MB]");
 
             if (this.MemoryLog.Any())
             {
@@ -76,7 +76,9 @@
                 }
 
                 double avgWorkingSet = this.MemoryLog.Average(e => e.WorkingSetMegaBytes);
-                bld.AppendLine($"[AVG Working set: {avgWorkingSet:####.} MB]");
+                double avgGc = this.MemoryLog.Average(e => e.GCMegaBytes);
+
+                bld.AppendLine($"[AVG Working set: {avgWorkingSet:####.} MB] [AVG GC: {avgGc:####.} MB]");
             }
             
             return bld.ToString();

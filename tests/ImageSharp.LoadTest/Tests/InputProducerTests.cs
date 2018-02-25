@@ -2,6 +2,9 @@
 namespace ImageSharp.LoadTest.Tests
 {
     using System.IO;
+
+    using ImageSharp.LoadTest.Execution;
+
     using MathNet.Numerics.Distributions;
     using Xunit;
     using Xunit.Abstractions;

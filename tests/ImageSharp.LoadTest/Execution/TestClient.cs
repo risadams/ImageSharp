@@ -1,5 +1,5 @@
 ﻿#pragma warning disable 4014
-namespace ImageSharp.LoadTest
+namespace ImageSharp.LoadTest.Execution
 {
     using System;
     using System.Collections.Concurrent;
@@ -106,7 +106,7 @@ namespace ImageSharp.LoadTest
         
         public async Task Run()
         {
-            if (Program.Verbose)
+            if (Program.IsInteractive)
             {
                 Console.WriteLine("Commands:");
                 Console.WriteLine("   ESC: Stop");
@@ -138,7 +138,7 @@ namespace ImageSharp.LoadTest
                             Interlocked.Increment(ref this.requestsAfterLastMemoryLog);
                             this.processed.Add(result);
 
-                            if (Program.Verbose)
+                            if (Program.IsInteractive)
                             {
                                 Console.WriteLine($"Finished: {result}");
                                 Console.WriteLine($"  Total: {this.processed.Count} | Requests in queue: {this.requestsSent}");

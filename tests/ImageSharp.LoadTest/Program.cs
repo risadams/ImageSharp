@@ -2,10 +2,10 @@
 
 namespace ImageSharp.LoadTest
 {
-    using System.Globalization;
     using System.Linq;
     using System.Reflection;
 
+    using ImageSharp.LoadTest.Execution;
     using ImageSharp.LoadTest.Service;
 
     using MathNet.Numerics.Distributions;
@@ -18,42 +18,31 @@ namespace ImageSharp.LoadTest
 
     class Program
     {
-        public static bool Verbose { get; set; } = true;
-
+        public static bool IsInteractive { get; set; } = true;
+        
         public static void Main(string[] args)
         {
             InitMemoryManager(args);
 
-            int meanImageWidth = 3200;
-            int imageWidthDeviation = 1000;
-            int averageMsBetweenRequests = 500;
+            var p = ExecutionParameters.Parse(args);
+            IsInteractive = p.IsInteractive;
 
-            if (args.Length > 3)
-            {
-                meanImageWidth = int.Parse(args[1], CultureInfo.InvariantCulture);
-                imageWidthDeviation = int.Parse(args[2], CultureInfo.InvariantCulture);
-                averageMsBetweenRequests = int.Parse(args[3], CultureInfo.InvariantCulture);
-            }
-
-            Verbose = args.Length == 0 || args.Length > 4 && args[4].ToLower().StartsWith("v");
-
-            Console.WriteLine(
-                $"meanImageWidth={meanImageWidth} | imageWidthDeviation={imageWidthDeviation} | averageMsBetweenRequests={averageMsBetweenRequests}");
+            Console.WriteLine(p.ToString());
             
             var service = new ResizeService() { CleanOutput = true };
 
             var client = TestClient.CreateWithLogNormalLoad(
                 service,
-                meanImageWidth,
-                imageWidthDeviation,
-                averageMsBetweenRequests);
+                p.MeanImageWidth,
+                p.ImageWidthDeviation,
+                p.AverageMsBetweenRequests);
 
-            client.AutoStopAfterNumberOfRequests = 610;
+            client.AutoStopAfterNumberOfRequests = p.NoOfReq;
             client.LogMemoryEachRequest = 50;
 
             client.Run().Wait();
 
-            if (Program.Verbose)
+            if (Program.IsInteractive)
             {
                 Console.WriteLine("Stopped.");
                 Console.ReadLine();

@@ -2,6 +2,7 @@
 {
     using System.Threading.Tasks;
 
+    using ImageSharp.LoadTest.Execution;
     using ImageSharp.LoadTest.Service;
     using ImageSharp.LoadTest.Statistics;
 

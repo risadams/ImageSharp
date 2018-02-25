@@ -1,4 +1,4 @@
-﻿namespace ImageSharp.LoadTest
+﻿namespace ImageSharp.LoadTest.Service
 {
     using System;
     using System.IO;
