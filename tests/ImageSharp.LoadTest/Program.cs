@@ -75,7 +75,7 @@ namespace ImageSharp.LoadTest
             }
             else
             {
-                memoryManager = ArrayPoolMemoryManager.CreateWithNormalPooling2();
+                memoryManager = ArrayPoolMemoryManager.CreateDefault();
             }
 
             Configuration.Default.MemoryManager = memoryManager;
