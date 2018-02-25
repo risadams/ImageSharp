@@ -1,9 +1,6 @@
-﻿using System.Threading.Tasks;
-
-namespace ImageSharp.LoadTest
+﻿namespace ImageSharp.LoadTest.Statistics
 {
     using System;
-    using System.IO;
 
     public class ServiceInvocationReport
     {
@@ -26,11 +23,5 @@ namespace ImageSharp.LoadTest
         {
             return $"{this.MegaPixelsProcessed:0.00}MP | {this.Milliseconds:0000}ms";
         }
-    }
-
-
-    public interface ITestService
-    {
-        Task<ServiceInvocationReport> ProcessImage(Func<string> pathProducer);
     }
 }

@@ -4,140 +4,16 @@ namespace ImageSharp.LoadTest
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Linq;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+
+    using ImageSharp.LoadTest.Service;
+    using ImageSharp.LoadTest.Statistics;
 
     using MathNet.Numerics.Distributions;
     using MathNet.Numerics.Random;
 
     using SixLabors.ImageSharp;
-
-    public class Stats
-    {
-        public Stats(IEnumerable<ServiceInvocationReport> reports, IEnumerable<MemoryLogEntry> memoryLog)
-        {
-            this.MemoryLog = memoryLog.ToArray();
-            this.ReportsByTime = reports.OrderBy(r => r.StartTime).ToArray();
-            this.ReportsByMegaPixels = this.ReportsByTime.OrderByDescending(r => r.MegaPixelsProcessed).ToArray();
-            
-            double totalMilliSeconds = 0;
-            double totalMegaPixels = 0;
-            foreach (ServiceInvocationReport r in this.ReportsByMegaPixels)
-            {
-                totalMilliSeconds += r.Milliseconds;
-                totalMegaPixels += r.MegaPixelsProcessed;
-            }
-
-            this.TotalMegaPixels = totalMegaPixels;
-            this.TotalMilliseconds = totalMilliSeconds;
-
-            double totalBytes = GC.GetTotalMemory(false);
-            this.TotalManagedMemoryInMegaBytes = totalBytes / (1024 * 1024);
-            var process = Process.GetCurrentProcess();
-            this.PeakWorkingSetMemoryInMegaBytes = process.PeakWorkingSet64 / (1024.0 * 1024.0);
-            this.TotalUpTime = DateTime.Now - this.ReportsByTime[0].StartTime;
-        }
-
-        public double PeakPrivateMemoryInMegaBytes { get; }
-
-        public double PeakWorkingSetMemoryInMegaBytes { get; }
-
-        public double TotalManagedMemoryInMegaBytes { get; }
-
-        public ServiceInvocationReport[] ReportsByMegaPixels { get; }
-
-        public ServiceInvocationReport[] ReportsByTime { get; }
-
-        public MemoryLogEntry[] MemoryLog { get; }
-
-        public double TotalMilliseconds { get; }
-
-        public double TotalMegaPixels { get; }
-
-        public double AverageMillisecondsPerMegaPixel => this.TotalMilliseconds / this.TotalMegaPixels;
-
-        public double AverageMillisecondsPerRequest => this.TotalMilliseconds / this.RequestCount;
-
-        public int RequestCount => this.ReportsByMegaPixels.Length;
-
-        public double AverageMegaPixels => this.TotalMegaPixels / this.RequestCount;
-
-        public TimeSpan TotalUpTime { get; }
-
-        public override string ToString()
-        {
-            var bld = new StringBuilder();
-            bld.AppendLine($"[Total RequestCount: {this.RequestCount}] [Total up time: {this.TotalUpTime:mm\\:ss}]");
-            bld.AppendLine(
-                $"[Avg MP: {this.AverageMegaPixels:###.##}] [Max MP: {this.ReportsByMegaPixels[0].MegaPixelsProcessed:###.##}]");
-            bld.AppendLine(
-                $"[ms/MP: {this.AverageMillisecondsPerMegaPixel:###.}] [avg ms/req: {this.AverageMillisecondsPerRequest:###.}]");
-            bld.AppendLine($"[Peak Working Set Memory: {this.PeakWorkingSetMemoryInMegaBytes:####.} MB] [GC: {this.TotalManagedMemoryInMegaBytes:####.} MB]");
-
-            if (this.MemoryLog.Any())
-            {
-                bld.AppendLine("** Memory Log:");
-
-                foreach (MemoryLogEntry e in this.MemoryLog)
-                {
-                    bld.AppendLine(e.ToString());
-                }
-
-                double avgWorkingSet = this.MemoryLog.Average(e => e.WorkingSetMegaBytes);
-                bld.AppendLine($"[AVG Working set: {avgWorkingSet:####.} MB]");
-            }
-            
-            return bld.ToString();
-        }
-    }
-
-    public struct MemoryLogEntry
-    {
-        public MemoryLogEntry(
-            int requestCount,
-            TimeSpan elapsedTime,
-            double privateMegaBytes,
-            double workingSetMegaBytes,
-            double virtualMegaBytes)
-        {
-            this.RequestCount = requestCount;
-            this.ElapsedTime = elapsedTime;
-
-            this.PrivateMegaBytes = privateMegaBytes;
-            this.WorkingSetMegaBytes = workingSetMegaBytes;
-            this.VirtualMegaBytes = virtualMegaBytes;
-        }
-
-        public static MemoryLogEntry Create(DateTime startTime, int requestCount)
-        {
-            var process = Process.GetCurrentProcess();
-            const double BytesInMb = (1024.0 * 1024.0);
-
-            double privateMb = process.PrivateMemorySize64 / BytesInMb;
-            double workingSetMb = process.WorkingSet64 / BytesInMb;
-            double virtMb = process.VirtualMemorySize64 / BytesInMb;
-            TimeSpan dt = DateTime.Now - startTime;
-            return new MemoryLogEntry(requestCount, dt, privateMb, workingSetMb, virtMb);
-        }
-
-        public int RequestCount { get; }
-
-        public double PrivateMegaBytes { get; }
-
-        public double WorkingSetMegaBytes { get; }
-
-        public double VirtualMegaBytes { get; }
-
-        public TimeSpan ElapsedTime { get; }
-
-        public override string ToString()
-        {
-            return $"{this.ElapsedTime:mm\\:ss} | WorkingSet: {this.WorkingSetMegaBytes:000.0} MB";
-        }
-    }
 
     public class TestClient
     {
@@ -222,7 +98,7 @@ namespace ImageSharp.LoadTest
         private void PrintStats()
         {
             Console.WriteLine("**** Stats ******");
-            var stats = new Stats(this.processed, this.memoryLog);
+            var stats = new ExecutionStats(this.processed, this.memoryLog);
             Console.WriteLine(stats.ToString());
             Console.WriteLine("*****************");
         }

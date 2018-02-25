@@ -2,6 +2,9 @@
 {
     using System.Threading.Tasks;
 
+    using ImageSharp.LoadTest.Service;
+    using ImageSharp.LoadTest.Statistics;
+
     using MathNet.Numerics.Distributions;
     using MathNet.Numerics.Random;
 

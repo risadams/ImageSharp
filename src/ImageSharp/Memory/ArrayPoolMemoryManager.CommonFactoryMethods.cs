@@ -26,6 +26,15 @@
         }
 
         /// <summary>
+        /// This is the default. Should be good for most use cases.
+        /// </summary>
+        /// <returns>The memory manager</returns>
+        public static ArrayPoolMemoryManager CreateWithNormalPooling2()
+        {
+            return new ArrayPoolMemoryManager(24 * 1024 * 1024, DefaultBufferSelectorThresholdInBytes, 6, 16);
+        }
+
+        /// <summary>
         /// For environments with limited memory capabilities. Only small images are pooled, which can result in reduced througput.
         /// </summary>
         /// <returns>The memory manager</returns>
@@ -44,12 +53,30 @@
         }
 
         /// <summary>
+        /// Only pool small buffers like image rows.
+        /// </summary>
+        /// <returns>The memory manager</returns>
+        public static ArrayPoolMemoryManager CreateWithConservativePooling2()
+        {
+            return new ArrayPoolMemoryManager(64 * 1024, 32 * 1024, 8, 24);
+        }
+
+        /// <summary>
         /// RAM is not an issue for me, gimme maximum througput!
         /// </summary>
         /// <returns>The memory manager</returns>
         public static ArrayPoolMemoryManager CreateWithAggressivePooling()
         {
             return new ArrayPoolMemoryManager(128 * 1024 * 1024, 32 * 1024 * 1024, 16, 32);
+        }
+
+        /// <summary>
+        /// RAM is not an issue for me, gimme maximum througput!
+        /// </summary>
+        /// <returns>The memory manager</returns>
+        public static ArrayPoolMemoryManager CreateWithAggressivePooling2()
+        {
+            return new ArrayPoolMemoryManager(512 * 1024 * 1024, 128 * 1024 * 1024, 50, 50);
         }
     }
 }

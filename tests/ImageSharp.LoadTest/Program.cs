@@ -6,6 +6,8 @@ namespace ImageSharp.LoadTest
     using System.Linq;
     using System.Reflection;
 
+    using ImageSharp.LoadTest.Service;
+
     using MathNet.Numerics.Distributions;
     using MathNet.Numerics.Random;
 
