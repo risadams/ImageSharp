@@ -4,6 +4,7 @@ namespace ImageSharp.LoadTest.Execution
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Runtime;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -112,6 +113,7 @@ namespace ImageSharp.LoadTest.Execution
                 Console.WriteLine("   ESC: Stop");
                 Console.WriteLine("   R:   ReleaseRetainedResources()");
                 Console.WriteLine("   S:   Stats");
+                Console.WriteLine("   X:   ReleaseRetainedResources() + GC + switch to dummy mode, keep benchmarking ");
                 Console.WriteLine("\nPress enter to start!\n***********");
                 Console.ReadLine();
             }
@@ -184,6 +186,15 @@ namespace ImageSharp.LoadTest.Execution
                         break;
                     case ConsoleKey.S:
                         this.PrintStats();
+                        break;
+                    case ConsoleKey.X:
+                        Console.WriteLine(" ~~~~~~ ReleaseRetainedResources() + GC + switch to dummy mode, keep benchmarking ~~~~~~~~~~~");
+                        this.service = new DummyService();
+
+                        Configuration.Default.MemoryManager.ReleaseRetainedResources();
+                        Thread.Sleep(10);
+                        GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+                        GC.Collect();
                         break;
                 }
             }
