@@ -106,6 +106,7 @@ namespace SixLabors.ImageSharp.Memory
             return buffer;
         }
 
+        /// <inheritdoc />
         internal override IManagedByteBuffer AllocateManagedByteBuffer(int length, bool clear)
         {
             ArrayPool<byte> pool = this.GetArrayPool(length);

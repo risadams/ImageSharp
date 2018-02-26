@@ -127,14 +127,21 @@ namespace SixLabors.ImageSharp.Tests.Memory
             }
         }
 
-        [Fact]
-        public void ReleaseRetainedResources_ReplacesInnerArrayPool()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ReleaseRetainedResources_ReplacesInnerArrayPool(bool keepBufferAlive)
         {
             IBuffer<int> buffer = this.MemoryManager.Allocate<int>(32);
             ref int ptrToPrev0 = ref buffer.Span.DangerousGetPinnableReference();
-            buffer.Dispose();
+
+            if (!keepBufferAlive)
+            {
+                buffer.Dispose();
+            }
 
             this.MemoryManager.ReleaseRetainedResources();
+            
             buffer = this.MemoryManager.Allocate<int>(32);
 
             Assert.False(Unsafe.AreSame(ref ptrToPrev0, ref buffer.DangerousGetPinnableReference()));
@@ -171,9 +178,9 @@ namespace SixLabors.ImageSharp.Tests.Memory
         }
 
         [Fact]
-        public void CreateWithNormalPooling()
+        public void CreateDefault()
         {
-            this.MemoryManager = ArrayPoolMemoryManager.CreateWithNormalPooling();
+            this.MemoryManager = ArrayPoolMemoryManager.CreateDefault();
 
             Assert.False(this.CheckIsRentingPooledBuffer<Rgba32>(2 * 4096 * 4096));
             Assert.True(this.CheckIsRentingPooledBuffer<Rgba32>(2048 * 2048));

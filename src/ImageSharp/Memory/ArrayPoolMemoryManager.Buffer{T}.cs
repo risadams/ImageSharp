@@ -11,11 +11,24 @@ namespace SixLabors.ImageSharp.Memory
     /// </summary>
     public partial class ArrayPoolMemoryManager
     {
+        /// <summary>
+        /// The buffer implementation of <see cref="ArrayPoolMemoryManager"/>
+        /// </summary>
         private class Buffer<T> : IBuffer<T>
             where T : struct
         {
+            /// <summary>
+            /// The length of the buffer
+            /// </summary>
             private readonly int length;
 
+            /// <summary>
+            /// A weak reference to the source pool.
+            /// </summary>
+            /// <remarks>
+            /// By using a weak reference here, we are making sure that array pools and their retained arrays are always GC-ed
+            /// after a call to <see cref="ArrayPoolMemoryManager.ReleaseRetainedResources"/>, regardless of having buffer instances still being in use.
+            /// </remarks>
             private WeakReference<ArrayPool<byte>> sourcePoolReference;
 
             public Buffer(byte[] data, int length, ArrayPool<byte> sourcePool)
@@ -25,10 +38,15 @@ namespace SixLabors.ImageSharp.Memory
                 this.sourcePoolReference = new WeakReference<ArrayPool<byte>>(sourcePool);
             }
 
+            /// <summary>
+            /// Gets the buffer as a byte array.
+            /// </summary>
             protected byte[] Data { get; private set; }
 
+            /// <inheritdoc />
             public Span<T> Span => this.Data.AsSpan().NonPortableCast<byte, T>().Slice(0, this.length);
 
+            /// <inheritdoc />
             public void Dispose()
             {
                 if (this.Data == null || this.sourcePoolReference == null)
@@ -46,6 +64,9 @@ namespace SixLabors.ImageSharp.Memory
             }
         }
 
+        /// <summary>
+        /// The <see cref="IManagedByteBuffer"/> implementation of <see cref="ArrayPoolMemoryManager"/>.
+        /// </summary>
         private class ManagedByteBuffer : Buffer<byte>, IManagedByteBuffer
         {
             public ManagedByteBuffer(byte[] data, int length, ArrayPool<byte> sourcePool)
