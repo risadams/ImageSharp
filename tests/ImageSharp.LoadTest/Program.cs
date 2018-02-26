@@ -58,8 +58,8 @@ namespace ImageSharp.LoadTest
                 string poolingMode = args[0].ToLower();
                 if (poolingMode == "nopooling")
                 {
-                    Console.WriteLine("MemoryManager: SimpleManagedMemoryManager");
-                    memoryManager = new SimpleManagedMemoryManager();
+                    Console.WriteLine("MemoryManager: SimpleGcMemoryManager");
+                    memoryManager = new SimpleGcMemoryManager();
                 }
                 else
                 {
