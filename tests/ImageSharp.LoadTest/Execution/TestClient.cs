@@ -190,8 +190,9 @@ namespace ImageSharp.LoadTest.Execution
                     case ConsoleKey.X:
                         Console.WriteLine(" ~~~~~~ ReleaseRetainedResources() + GC + switch to dummy mode, keep benchmarking ~~~~~~~~~~~");
                         this.service = new DummyService();
-
+#if !RELEASE_OLD
                         Configuration.Default.MemoryManager.ReleaseRetainedResources();
+#endif
                         Thread.Sleep(10);
                         GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
                         GC.Collect();
