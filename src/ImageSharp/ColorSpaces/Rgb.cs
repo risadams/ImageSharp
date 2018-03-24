@@ -6,12 +6,14 @@ using System.ComponentModel;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
+using SixLabors.ImageSharp.PixelFormats;
+
 namespace SixLabors.ImageSharp.ColorSpaces
 {
     /// <summary>
     /// Represents an RGB color with specified <see cref="IRgbWorkingSpace"/> working space
     /// </summary>
-    internal struct Rgb : IColorVector, IEquatable<Rgb>, IAlmostEquatable<Rgb, float>
+    internal readonly struct Rgb : IColorVector, IEquatable<Rgb>, IAlmostEquatable<Rgb, float>
     {
         /// <summary>
         /// Represents a <see cref="Rgb"/> that has R, G, and B values set to zero.

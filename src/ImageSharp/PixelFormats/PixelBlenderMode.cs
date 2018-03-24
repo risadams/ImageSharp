@@ -1,14 +1,10 @@
 ﻿// Copyright (c) Six Labors and contributors.
 // Licensed under the Apache License, Version 2.0.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace SixLabors.ImageSharp.PixelFormats
 {
     /// <summary>
-    /// The various blending modes.
+    /// Enumerates the various blending modes.
     /// </summary>
     public enum PixelBlenderMode
     {
@@ -30,7 +26,7 @@ namespace SixLabors.ImageSharp.PixelFormats
         /// <summary>
         /// Blends the 2 values by subtraction.
         /// </summary>
-        Substract,
+        Subtract,
 
         /// <summary>
         /// Multiplies the complements of the backdrop and source values, then complements the result.

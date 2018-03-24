@@ -11,6 +11,8 @@ namespace SixLabors.ImageSharp.Tests.Processing.Processors.Transforms
     using System.Reflection;
 
     using SixLabors.ImageSharp.Processing;
+    using SixLabors.ImageSharp.Processing.Transforms;
+    using SixLabors.ImageSharp.Processing.Transforms.Resamplers;
 
     public class SkewTest : FileTestBase
     {

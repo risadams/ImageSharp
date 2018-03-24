@@ -11,6 +11,8 @@ using Xunit;
 
 namespace SixLabors.ImageSharp.Tests.Processing.Processors.Filters
 {
+    using SixLabors.ImageSharp.Processing.Filters;
+
     [GroupOutput("Filters")]
     public class FilterTest
     {
@@ -38,9 +40,9 @@ namespace SixLabors.ImageSharp.Tests.Processing.Processors.Filters
 
         private static Matrix4x4 CreateCombinedTestFilterMatrix()
         {
-            Matrix4x4 brightness = MatrixFilters.CreateBrightnessFilter(0.9F);
-            Matrix4x4 hue = MatrixFilters.CreateHueFilter(180F);
-            Matrix4x4 saturation = MatrixFilters.CreateSaturateFilter(1.5F);
+            Matrix4x4 brightness = KnownFilterMatrices.CreateBrightnessFilter(0.9F);
+            Matrix4x4 hue = KnownFilterMatrices.CreateHueFilter(180F);
+            Matrix4x4 saturation = KnownFilterMatrices.CreateSaturateFilter(1.5F);
             Matrix4x4 m = brightness * hue * saturation;
             return m;
         }

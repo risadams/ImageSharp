@@ -9,6 +9,8 @@ using System.Text;
 using SixLabors.ImageSharp.MetaData;
 using SixLabors.ImageSharp.MetaData.Profiles.Exif;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Primitives;
+
 using Xunit;
 
 namespace SixLabors.ImageSharp.Tests
@@ -272,7 +274,7 @@ namespace SixLabors.ImageSharp.Tests
         [Fact]
         public void ExifTypeUndefined()
         {
-            Image<Rgba32> image = TestFile.Create(TestImages.Jpeg.Baseline.Bad.ExifUndefType).CreateImage();
+            Image<Rgba32> image = TestFile.Create(TestImages.Jpeg.Progressive.Bad.ExifUndefType).CreateImage();
             Assert.NotNull(image);
 
             ExifProfile profile = image.MetaData.ExifProfile;

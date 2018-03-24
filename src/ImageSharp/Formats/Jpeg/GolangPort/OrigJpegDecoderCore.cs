@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using System.IO;
-
 using SixLabors.ImageSharp.Formats.Jpeg.Common;
 using SixLabors.ImageSharp.Formats.Jpeg.Common.Decoder;
 using SixLabors.ImageSharp.Formats.Jpeg.GolangPort.Components.Decoder;
@@ -11,6 +10,7 @@ using SixLabors.ImageSharp.MetaData;
 using SixLabors.ImageSharp.MetaData.Profiles.Exif;
 using SixLabors.ImageSharp.MetaData.Profiles.Icc;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Primitives;
 using SixLabors.Primitives;
 
 namespace SixLabors.ImageSharp.Formats.Jpeg.GolangPort
@@ -231,10 +231,11 @@ namespace SixLabors.ImageSharp.Formats.Jpeg.GolangPort
         {
             this.MetaData = new ImageMetaData();
             this.InputStream = stream;
-            this.InputProcessor = new InputProcessor(this.configuration.MemoryManager, stream, this.Temp);
+            this.InputProcessor = new InputProcessor(stream, this.Temp);
 
             // Check for the Start Of Image marker.
             this.InputProcessor.ReadFull(this.Temp, 0, 2);
+
             if (this.Temp[0] != OrigJpegConstants.Markers.XFF || this.Temp[1] != OrigJpegConstants.Markers.SOI)
             {
                 throw new ImageFormatException("Missing SOI marker.");
@@ -247,6 +248,13 @@ namespace SixLabors.ImageSharp.Formats.Jpeg.GolangPort
             while (processBytes)
             {
                 this.InputProcessor.ReadFull(this.Temp, 0, 2);
+
+                if (this.InputProcessor.ReachedEOF)
+                {
+                    // We've reached the end of the stream.
+                    processBytes = false;
+                }
+
                 while (this.Temp[0] != 0xff)
                 {
                     // Strictly speaking, this is a format error. However, libjpeg is
@@ -281,7 +289,14 @@ namespace SixLabors.ImageSharp.Formats.Jpeg.GolangPort
                 {
                     // Section B.1.1.2 says, "Any marker may optionally be preceded by any
                     // number of fill bytes, which are bytes assigned code X'FF'".
-                    marker = this.InputProcessor.ReadByte();
+                    this.InputProcessor.ReadByteUnsafe(out marker);
+
+                    if (this.InputProcessor.ReachedEOF)
+                    {
+                        // We've reached the end of the stream.
+                        processBytes = false;
+                        break;
+                    }
                 }
 
                 // End Of Image.
@@ -303,7 +318,7 @@ namespace SixLabors.ImageSharp.Formats.Jpeg.GolangPort
 
                 // Read the 16-bit length of the segment. The value includes the 2 bytes for the
                 // length itself, so we subtract 2 to get the number of remaining bytes.
-                this.InputProcessor.ReadFull(this.Temp, 0, 2);
+                this.InputProcessor.ReadFullUnsafe(this.Temp, 0, 2);
                 int remaining = (this.Temp[0] << 8) + this.Temp[1] - 2;
                 if (remaining < 0)
                 {
@@ -351,12 +366,10 @@ namespace SixLabors.ImageSharp.Formats.Jpeg.GolangPort
                             return;
                         }
 
-                        // when this is a progressive image this gets called a number of times
-                        // need to know how many times this should be called in total.
                         this.ProcessStartOfScanMarker(remaining);
-                        if (this.InputProcessor.ReachedEOF || !this.IsProgressive)
+                        if (this.InputProcessor.ReachedEOF)
                         {
-                            // if unexpeced EOF reached or this is not a progressive image we can stop processing bytes as we now have the image data.
+                            // If unexpected EOF reached. We can stop processing bytes as we now have the image data.
                             processBytes = false;
                         }
 
@@ -390,21 +403,21 @@ namespace SixLabors.ImageSharp.Formats.Jpeg.GolangPort
                         {
                             this.InputProcessor.Skip(remaining);
                         }
-                        else if (marker < OrigJpegConstants.Markers.SOF0)
-                        {
-                            // See Table B.1 "Marker code assignments".
-                            throw new ImageFormatException("Unknown marker");
-                        }
-                        else
-                        {
-                            throw new ImageFormatException("Unknown marker");
-                        }
 
                         break;
                 }
             }
 
             this.InitDerivedMetaDataProperties();
+        }
+
+        /// <summary>
+        /// Returns true if 'mcuCounter' is at restart interval
+        /// </summary>
+        public bool IsAtRestartInterval(int mcuCounter)
+        {
+            return this.RestartInterval > 0 && mcuCounter % this.RestartInterval == 0
+                                            && mcuCounter < this.TotalMCUCount;
         }
 
         /// <summary>
@@ -627,7 +640,7 @@ namespace SixLabors.ImageSharp.Formats.Jpeg.GolangPort
 
             switch (remaining)
             {
-                case 6 + (3 * 1): // Grayscale image.
+                case 6 + (3 * 1): // grayscale image.
                     this.ComponentCount = 1;
                     break;
                 case 6 + (3 * 3): // YCbCr or RGB image.
@@ -754,7 +767,7 @@ namespace SixLabors.ImageSharp.Formats.Jpeg.GolangPort
             switch (this.ComponentCount)
             {
                 case 1:
-                    return JpegColorSpace.GrayScale;
+                    return JpegColorSpace.Grayscale;
                 case 3:
                     if (!this.isAdobe || this.adobe.ColorTransform == OrigJpegConstants.Adobe.ColorTransformYCbCr)
                     {
@@ -777,7 +790,7 @@ namespace SixLabors.ImageSharp.Formats.Jpeg.GolangPort
             }
 
             throw new ImageFormatException($"Unsupported color mode. Max components 4; found {this.ComponentCount}."
-                                           + "JpegDecoder only supports YCbCr, RGB, YccK, CMYK and Grayscale color spaces.");
+                                           + "JpegDecoder only supports YCbCr, RGB, YccK, CMYK and grayscale color spaces.");
         }
 
         private Image<TPixel> PostProcessIntoImage<TPixel>()

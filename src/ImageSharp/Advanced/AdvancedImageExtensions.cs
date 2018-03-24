@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0.
 
 using System;
+using System.Runtime.InteropServices;
 using SixLabors.ImageSharp.Memory;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -25,7 +26,7 @@ namespace SixLabors.ImageSharp.Advanced
         /// <summary>
         /// Returns a reference to the 0th element of the Pixel buffer,
         /// allowing direct manipulation of pixel data through unsafe operations.
-        /// The pixel buffer is a contigous memory area containing Width*Height TPixel elements layed out in row-major order.
+        /// The pixel buffer is a contiguous memory area containing Width*Height TPixel elements laid out in row-major order.
         /// </summary>
         /// <typeparam name="TPixel">The Pixel format.</typeparam>
         /// <param name="source">The source image frame</param>
@@ -148,6 +149,6 @@ namespace SixLabors.ImageSharp.Advanced
         /// <returns>A reference to the element.</returns>
         private static ref TPixel DangerousGetPinnableReferenceToPixelBuffer<TPixel>(IPixelSource<TPixel> source)
             where TPixel : struct, IPixel<TPixel>
-            => ref source.PixelBuffer.Span.DangerousGetPinnableReference();
+            => ref MemoryMarshal.GetReference(source.PixelBuffer.Span);
     }
 }

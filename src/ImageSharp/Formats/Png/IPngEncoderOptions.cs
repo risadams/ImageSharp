@@ -1,28 +1,15 @@
 ﻿// Copyright (c) Six Labors and contributors.
 // Licensed under the Apache License, Version 2.0.
 
-using System.Collections.Generic;
-using System.IO;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Quantizers;
+using SixLabors.ImageSharp.Processing.Quantization;
 
 namespace SixLabors.ImageSharp.Formats.Png
 {
     /// <summary>
-    /// The options availible for manipulating the encoder pipeline
+    /// The options available for manipulating the encoder pipeline
     /// </summary>
     internal interface IPngEncoderOptions
     {
-        /// <summary>
-        /// Gets a value indicating whether the metadata should be ignored when the image is being encoded.
-        /// </summary>
-        bool IgnoreMetadata { get; }
-
-        /// <summary>
-        /// Gets the size of the color palette to use. Set to zero to leav png encoding to use pixel data.
-        /// </summary>
-        int PaletteSize { get; }
-
         /// <summary>
         /// Gets the png color type
         /// </summary>

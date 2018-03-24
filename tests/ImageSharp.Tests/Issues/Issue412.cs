@@ -1,18 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using SixLabors.Primitives;
-using SixLabors.ImageSharp.Advanced;
+﻿using SixLabors.Primitives;
+
 using Xunit;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing.Drawing;
 
 namespace SixLabors.ImageSharp.Tests.Issues
 {
+    using SixLabors.ImageSharp.Processing;
+
     public class Issue412
     {
         [Theory]
         [WithBlankImages(40, 30, PixelTypes.Rgba32)]
-        public void AllPixelsExpectedToBeRedWhenAntialisedDisabled<TPixel>(TestImageProvider<TPixel> provider) where TPixel : struct, IPixel<TPixel>
+        public void AllPixelsExpectedToBeRedWhenAntialiasedDisabled<TPixel>(TestImageProvider<TPixel> provider) where TPixel : struct, IPixel<TPixel>
         {
             using (var image = provider.GetImage())
             {
@@ -22,24 +22,24 @@ namespace SixLabors.ImageSharp.Tests.Issues
                         for (var i = 0; i < 40; ++i)
                         {
                             context.DrawLines(
+                                new GraphicsOptions(false),
                                 NamedColors<TPixel>.Black,
                                 1,
                                 new[]
                                 {
                                 new PointF(i, 0.1066f),
                                 new PointF(i, 10.1066f)
-                                },
-                                new GraphicsOptions(true));
+                                });
 
                             context.DrawLines(
+                                new GraphicsOptions(false),
                                 NamedColors<TPixel>.Red,
                                 1,
                                 new[]
                                 {
                                 new PointF(i, 15.1066f),
                                 new PointF(i, 25.1066f)
-                                },
-                                new GraphicsOptions(false));
+                                });
                         }
                     });
 

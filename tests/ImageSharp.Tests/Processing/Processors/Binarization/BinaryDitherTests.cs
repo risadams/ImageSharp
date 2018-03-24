@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Six Labors and contributors.
 // Licensed under the Apache License, Version 2.0.
 
-using SixLabors.ImageSharp.Dithering;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Tests.TestUtilities.ImageComparison;
 
@@ -11,6 +10,12 @@ using Xunit;
 
 namespace SixLabors.ImageSharp.Tests.Processing.Processors.Binarization
 {
+    using SixLabors.ImageSharp.Processing;
+    using SixLabors.ImageSharp.Processing.Binarization;
+    using SixLabors.ImageSharp.Processing.Dithering;
+    using SixLabors.ImageSharp.Processing.Dithering.ErrorDiffusion;
+    using SixLabors.ImageSharp.Processing.Dithering.Ordered;
+
     public class BinaryDitherTests : FileTestBase
     {
         public static readonly string[] CommonTestImages =
@@ -18,7 +23,7 @@ namespace SixLabors.ImageSharp.Tests.Processing.Processors.Binarization
                 TestImages.Png.CalliphoraPartial, TestImages.Png.Bike
             };
 
-        public static readonly TheoryData<string, IOrderedDither> Ditherers = new TheoryData<string, IOrderedDither>
+        public static readonly TheoryData<string, IOrderedDither> OrderedDitherers = new TheoryData<string, IOrderedDither>
         {
             { "Bayer8x8", KnownDitherers.BayerDither8x8 },
             { "Bayer4x4", KnownDitherers.BayerDither4x4 },
@@ -45,8 +50,8 @@ namespace SixLabors.ImageSharp.Tests.Processing.Processors.Binarization
         private static IErrorDiffuser DefaultErrorDiffuser => KnownDiffusers.Atkinson;
 
         [Theory]
-        [WithFileCollection(nameof(CommonTestImages), nameof(Ditherers), DefaultPixelType)]
-        [WithTestPatternImages(nameof(Ditherers), 100, 100, DefaultPixelType)]
+        [WithFileCollection(nameof(CommonTestImages), nameof(OrderedDitherers), DefaultPixelType)]
+        [WithTestPatternImages(nameof(OrderedDitherers), 100, 100, DefaultPixelType)]
         public void BinaryDitherFilter_WorksWithAllDitherers<TPixel>(TestImageProvider<TPixel> provider, string name, IOrderedDither ditherer)
             where TPixel : struct, IPixel<TPixel>
         {

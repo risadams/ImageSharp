@@ -29,6 +29,7 @@
     <DebugType Condition="$(codecov) == ''">portable</DebugType>
     <DebugSymbols>True</DebugSymbols>
     <Features>IOperation</Features>
+    <LangVersion>7.2</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\Shared\*.cs" Exclude="bin\**;obj\**;**\*.xproj;packages\**" />
@@ -36,16 +37,15 @@
   <ItemGroup>
     <PackageReference Include="SixLabors.Core" Version="1.0.0-ci0005" />
     <AdditionalFiles Include="..\..\stylecop.json" />
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta004">
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta006">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="System.Buffers" Version="4.4.0" />
-    <PackageReference Include="System.Memory" Version="4.4.0-preview2-25405-01" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.4.0" />
+    <PackageReference Include="System.Memory" Version="4.5.0-preview1-26216-02" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.0-preview1-26216-02" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.1' OR '$(TargetFramework)' == 'netstandard1.3'">
     <PackageReference Include="System.IO.Compression" Version="4.3.0" />
-    <PackageReference Include="System.Numerics.Vectors" Version="4.4.0" />
     <PackageReference Include="System.Threading.Tasks.Parallel" Version="4.3.0" />
     <PackageReference Include="System.ValueTuple" Version="4.4.0" />
   </ItemGroup>
@@ -125,8 +125,5 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>PorterDuffFunctions.Generated.tt</DependentUpon>
     </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Formats\Jpeg\GolangPort\Utils\" />
   </ItemGroup>
 </Project>

@@ -2,6 +2,9 @@
 // Licensed under the Apache License, Version 2.0.
 
 // ReSharper disable InconsistentNaming
+
+using SixLabors.ImageSharp.PixelFormats;
+
 namespace SixLabors.ImageSharp.Tests.Memory
 {
     using System;
@@ -133,7 +136,7 @@ namespace SixLabors.ImageSharp.Tests.Memory
         public void ReleaseRetainedResources_ReplacesInnerArrayPool(bool keepBufferAlive)
         {
             IBuffer<int> buffer = this.MemoryManager.Allocate<int>(32);
-            ref int ptrToPrev0 = ref buffer.Span.DangerousGetPinnableReference();
+            ref int ptrToPrev0 = ref MemoryMarshal.GetReference(buffer.Span);
 
             if (!keepBufferAlive)
             {

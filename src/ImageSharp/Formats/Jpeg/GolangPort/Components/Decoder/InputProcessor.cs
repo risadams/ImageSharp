@@ -5,8 +5,6 @@ using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 
-using SixLabors.ImageSharp.Memory;
-
 namespace SixLabors.ImageSharp.Formats.Jpeg.GolangPort.Components.Decoder
 {
     /// <summary>
@@ -28,13 +26,12 @@ namespace SixLabors.ImageSharp.Formats.Jpeg.GolangPort.Components.Decoder
         /// <summary>
         /// Initializes a new instance of the <see cref="InputProcessor"/> struct.
         /// </summary>
-        /// <param name="memoryManager">The <see cref="MemoryManager"/> to use for buffer allocations.</param>
         /// <param name="inputStream">The input <see cref="Stream"/></param>
         /// <param name="temp">Temporal buffer, same as <see cref="OrigJpegDecoderCore.Temp"/></param>
-        public InputProcessor(MemoryManager memoryManager, Stream inputStream, byte[] temp)
+        public InputProcessor(Stream inputStream, byte[] temp)
         {
             this.Bits = default(Bits);
-            this.Bytes = Bytes.Create(memoryManager);
+            this.Bytes = Bytes.Create();
             this.InputStream = inputStream;
             this.Temp = temp;
             this.LastErrorCode = OrigDecoderErrorCode.NoError;
@@ -46,7 +43,7 @@ namespace SixLabors.ImageSharp.Formats.Jpeg.GolangPort.Components.Decoder
         public Stream InputStream { get; }
 
         /// <summary>
-        /// Gets the temporal buffer, same instance as <see cref="OrigJpegDecoderCore.Temp"/>
+        /// Gets the temporary buffer, same instance as <see cref="OrigJpegDecoderCore.Temp"/>
         /// </summary>
         public byte[] Temp { get; }
 
@@ -108,6 +105,13 @@ namespace SixLabors.ImageSharp.Formats.Jpeg.GolangPort.Components.Decoder
             return this.Bytes.ReadByte(this.InputStream);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public OrigDecoderErrorCode ReadByteUnsafe(out byte result)
+        {
+            this.LastErrorCode = this.Bytes.ReadByteUnsafe(this.InputStream, out result);
+            return this.LastErrorCode;
+        }
+
         /// <summary>
         /// Decodes a single bit
         /// TODO: This method (and also the usages) could be optimized by batching!
@@ -158,13 +162,13 @@ namespace SixLabors.ImageSharp.Formats.Jpeg.GolangPort.Components.Decoder
             {
                 if (this.Bytes.J - this.Bytes.I >= length)
                 {
-                    Array.Copy(this.Bytes.Buffer.Array, this.Bytes.I, data, offset, length);
+                    Array.Copy(this.Bytes.Buffer, this.Bytes.I, data, offset, length);
                     this.Bytes.I += length;
                     length -= length;
                 }
                 else
                 {
-                    Array.Copy(this.Bytes.Buffer.Array, this.Bytes.I, data, offset, this.Bytes.J - this.Bytes.I);
+                    Array.Copy(this.Bytes.Buffer, this.Bytes.I, data, offset, this.Bytes.J - this.Bytes.I);
                     offset += this.Bytes.J - this.Bytes.I;
                     length -= this.Bytes.J - this.Bytes.I;
                     this.Bytes.I += this.Bytes.J - this.Bytes.I;
@@ -375,6 +379,14 @@ namespace SixLabors.ImageSharp.Formats.Jpeg.GolangPort.Components.Decoder
         {
             this.LastErrorCode = this.Bits.ReceiveExtendUnsafe(t, ref this, out x);
             return this.LastErrorCode;
+        }
+
+        /// <summary>
+        /// Reset the Huffman decoder.
+        /// </summary>
+        public void ResetHuffmanDecoder()
+        {
+            this.Bits = default(Bits);
         }
     }
 }

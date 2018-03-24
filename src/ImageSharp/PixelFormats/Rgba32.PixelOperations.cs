@@ -6,9 +6,8 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using SixLabors.ImageSharp.Memory;
-using SixLabors.ImageSharp.PixelFormats;
 
-namespace SixLabors.ImageSharp
+namespace SixLabors.ImageSharp.PixelFormats
 {
     /// <content>
     /// Provides optimized overrides for bulk operations.
@@ -57,8 +56,8 @@ namespace SixLabors.ImageSharp
 
                 int unpackedRawCount = count * 4;
 
-                ref uint sourceBase = ref Unsafe.As<Rgba32, uint>(ref sourceColors.DangerousGetPinnableReference());
-                ref UnpackedRGBA destBaseAsUnpacked = ref Unsafe.As<Vector4, UnpackedRGBA>(ref destVectors.DangerousGetPinnableReference());
+                ref uint sourceBase = ref Unsafe.As<Rgba32, uint>(ref MemoryMarshal.GetReference(sourceColors));
+                ref UnpackedRGBA destBaseAsUnpacked = ref Unsafe.As<Vector4, UnpackedRGBA>(ref MemoryMarshal.GetReference(destVectors));
                 ref Vector<uint> destBaseAsUInt = ref Unsafe.As<UnpackedRGBA, Vector<uint>>(ref destBaseAsUnpacked);
                 ref Vector<float> destBaseAsFloat = ref Unsafe.As<UnpackedRGBA, Vector<float>>(ref destBaseAsUnpacked);
 

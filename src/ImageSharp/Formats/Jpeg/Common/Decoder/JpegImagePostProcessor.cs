@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Numerics;
 using SixLabors.ImageSharp.Advanced;
-using SixLabors.ImageSharp.Helpers;
 using SixLabors.ImageSharp.Memory;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.Primitives;
@@ -74,7 +73,7 @@ namespace SixLabors.ImageSharp.Formats.Jpeg.Common.Decoder
         public int NumberOfPostProcessorSteps { get; }
 
         /// <summary>
-        /// Gets the size of the temporal buffers we need to allocate into <see cref="JpegComponentPostProcessor.ColorBuffer"/>.
+        /// Gets the size of the temporary buffers we need to allocate into <see cref="JpegComponentPostProcessor.ColorBuffer"/>.
         /// </summary>
         public Size PostProcessorBufferSize { get; }
 
@@ -116,7 +115,7 @@ namespace SixLabors.ImageSharp.Formats.Jpeg.Common.Decoder
         }
 
         /// <summary>
-        /// Execute one step rocessing <see cref="PixelRowsPerStep"/> pixel rows into 'destination'.
+        /// Execute one step processing <see cref="PixelRowsPerStep"/> pixel rows into 'destination'.
         /// </summary>
         /// <typeparam name="TPixel">The pixel type</typeparam>
         /// <param name="destination">The destination image.</param>

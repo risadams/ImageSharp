@@ -2,17 +2,17 @@
 // Licensed under the Apache License, Version 2.0.
 
 using System;
-
-using SixLabors.ImageSharp.Helpers;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-
+using SixLabors.ImageSharp.Processing.Transforms.Resamplers;
 using SixLabors.Primitives;
 using Xunit;
 
 // ReSharper disable InconsistentNaming
 namespace SixLabors.ImageSharp.Tests.Processing.Processors.Transforms
 {
+    using SixLabors.ImageSharp.Processing.Transforms;
+
     public class ResizeTests : FileTestBase
     {
         public static readonly string[] CommonTestImages = { TestImages.Png.CalliphoraPartial };
@@ -102,7 +102,7 @@ namespace SixLabors.ImageSharp.Tests.Processing.Processors.Transforms
         {
             using (Image<TPixel> image = provider.GetImage())
             {
-                image.Mutate(x => x.Resize(image.Width / 2, image.Height / 2, KnownResamplers.NearestNeighbor));
+                image.Mutate(x => x.Resize(image.Width / 2, image.Height / 2, KnownResamplers.Bicubic));
 
                 // Comparer fights decoder with gif-s. Could not use CompareToReferenceOutput here :(
                 image.DebugSave(provider, extension: Extensions.Gif);
