@@ -8,6 +8,8 @@
     using ImageSharp.LoadTest.Statistics;
 
     using SixLabors.ImageSharp;
+    using SixLabors.ImageSharp.Processing;
+    using SixLabors.ImageSharp.Processing.Transforms;
     using SixLabors.Primitives;
 
     public class ResizeService : ITestService
