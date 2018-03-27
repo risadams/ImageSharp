@@ -113,7 +113,8 @@ namespace ImageSharp.LoadTest.Execution
                 Console.WriteLine("   ESC: Stop");
                 Console.WriteLine("   R:   ReleaseRetainedResources()");
                 Console.WriteLine("   S:   Stats");
-                Console.WriteLine("   X:   ReleaseRetainedResources() + GC + switch to dummy mode, keep benchmarking ");
+                Console.WriteLine("   D:   switch to dummy mode, keep benchmarking");
+                Console.WriteLine("   X:   ReleaseRetainedResources() + GC + switch to dummy mode, keep benchmarking");
                 Console.WriteLine("\nPress enter to start!\n***********");
                 Console.ReadLine();
             }
@@ -186,6 +187,9 @@ namespace ImageSharp.LoadTest.Execution
                         break;
                     case ConsoleKey.S:
                         this.PrintStats();
+                        break;
+                    case ConsoleKey.D:
+                        this.service = new DummyService();
                         break;
                     case ConsoleKey.X:
                         Console.WriteLine(" ~~~~~~ ReleaseRetainedResources() + GC + switch to dummy mode, keep benchmarking ~~~~~~~~~~~");
